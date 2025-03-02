@@ -1,0 +1,40 @@
+name: Setup TON CLI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # cho phép chạy thủ công
+
+jobs:
+  setup-ton:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y curl git clang cmake build-essential
+
+      - name: Clone TON repository
+        run: |
+          git clone --recursive https://github.com/ton-blockchain/ton.git ~/ton
+          cd ~/ton
+          mkdir build && cd build
+          cmake ..
+          cmake --build . --target func fift lite-client
+
+      - name: Add TON tools to PATH
+        run: |
+          echo 'export PATH=$HOME/ton/build:$PATH' >> $HOME/.bashrc
+          source $HOME/.bashrc
+
+      - name: Verify installation
+        run: |
+          func -V
+          fift -V
